@@ -9,7 +9,7 @@ pipeline{
     stages{
         stage('SCM'){
             steps{
-                git 'https://github.com/Praveeen1996/dockeransiblejenkins-1.git'
+                git branch: 'main', url: 'https://github.com/Praveeen1996/devops-automation-2.git'
             }
         }
         
