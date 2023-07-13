@@ -21,7 +21,7 @@ pipeline{
         
         stage('Docker Build'){
             steps{
-                sh "docker build . -t praveenhema/DevOps:${DOCKER_TAG} "
+                sh "docker build . -t praveenhema/javaapps:${DOCKER_TAG} "
             }
         }
         stage('DockerHub Push'){
@@ -30,7 +30,7 @@ pipeline{
                     sh "docker login -u praveenhema -p ${dockerHubPwd}"
                 }
                 
-                sh "docker push praveenhema/DevOps:${DOCKER_TAG} "
+                sh "docker push praveenhema/javaapps:${DOCKER_TAG} "
             }
         }
         stage('Docker Deploy'){
