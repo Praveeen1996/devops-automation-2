@@ -21,8 +21,8 @@
         state: present
     - name: Start the container
       docker_container:
-        name: webapps
-        image: "praveenhema/webapps:{{DOCKER_TAG}}"
+        name: DevOps
+        image: "praveenhema/DevOps:{{DOCKER_TAG}}"
         state: started
         published_ports:
           - 0.0.0.0:8080:8080
