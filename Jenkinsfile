@@ -1,39 +1,47 @@
-pipeline {
+pipeline{
     agent any
-    tools{
-        maven 'maven_3_5_0'
+    tools {
+  maven 'maven-3.9.3'
+}
+    environment {
+      DOCKER_TAG = getVersion()
     }
     stages{
-        stage('Build Maven'){
+        stage('SCM'){
             steps{
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Java-Techie-jt/devops-automation']]])
-                sh 'mvn clean install'
+                git 'https://github.com/Praveeen1996/dockeransiblejenkins-1.git'
             }
         }
-        stage('Build docker image'){
+        
+        stage('Maven Build'){
             steps{
-                script{
-                    sh 'docker build -t javatechie/devops-integration .'
-                }
+                sh "mvn clean package"
             }
         }
-        stage('Push image to Hub'){
+        
+        stage('Docker Build'){
             steps{
-                script{
-                   withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
-                   sh 'docker login -u javatechie -p ${dockerhubpwd}'
-
-}
-                   sh 'docker push javatechie/devops-integration'
-                }
+                sh "docker build . -t praveenhema/DevOps:${DOCKER_TAG} "
             }
         }
-        stage('Deploy to k8s'){
+        stage('DockerHub Push'){
             steps{
-                script{
-                    kubernetesDeploy (configs: 'deploymentservice.yaml',kubeconfigId: 'k8sconfigpwd')
+                withCredentials([string(credentialsId: 'docker-hub', variable: 'dockerHubPwd')]) {
+                    sh "docker login -u praveenhema -p ${dockerHubPwd}"
                 }
+                
+                sh "docker push praveenhema/DevOps:${DOCKER_TAG} "
+            }
+        }
+        stage('Docker Deploy'){
+            steps{
+              ansiblePlaybook credentialsId: 'dev-server', disableHostKeyChecking: true, extras: "-e DOCKER_TAG=${DOCKER_TAG}", installation: 'ansible', inventory: 'dev.inv', playbook: 'deploy-docker.yml'
             }
         }
     }
+}
+
+def getVersion(){
+    def commitHash = sh label: '', returnStdout: true, script: 'git rev-parse --short HEAD'
+    return commitHash
 }
